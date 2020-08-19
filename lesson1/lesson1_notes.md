@@ -88,7 +88,7 @@ nohup ./tidb-server --store=tikv --path="127.0.0.1:2379" --log-file=/Users/zhaom
 3.1 登录数据库（默认端口 4000，用户名 密码 root/Dest ）
  mysql -h127.0.0.1 -P4000 -uroot -Dtest
 
-![tidb数据库](images/tidb.png)
+![tidb数据库](../images/tidb.png)
 
 3.3 查看实时日志, 可看到 "hello transaction"
 tailf -f tidb_data/tidb/tidb.log
@@ -97,4 +97,4 @@ tailf -f tidb_data/tidb/tidb.log
 [2020/08/16 18:39:57.472 +08:00] [INFO] [session.go:2168] ["hello transaction"]
 [2020/08/16 18:39:57.472 +08:00] [INFO] [session.go:2168] ["hello transaction"]
 
-![log](images/log.png)
+![log](../images/log.png)
