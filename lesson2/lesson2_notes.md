@@ -9,4 +9,9 @@
 
 课件：
 
+TiDB 基准测试：https://www.bilibili.com/video/BV1TD4y1m7AF/
+
 作业：
+
+
+

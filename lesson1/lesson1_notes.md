@@ -32,20 +32,23 @@ func (s *session) PrepareTxnCtx(ctx context.Context) {
 ```
 
 2. 部署 TIDB 环境 
-TIDB 共涉及 3 个项目, 启动顺序是PD --> TIKV --> TIDB
+TIDB 共涉及 3 个项目,  启动顺序是 PD --> TIKV --> TIDB
 
 2.1 启动 PD 项目
 ```bash
 git clone git@github.com:MarilynZ/pd.git
 
 编译
-cd pd && make
+cd pd
+go mod tidy
+make
 
 创建文件
-mkdir tidb_data/pd
+mkdir -p tb_data/pd
+mkdir logs
 
 启动
-nohup ./pd-server --name=pd1 --client-urls=http://127.0.0.1:2379 --peer-urls=http://127.0.0.1:2380 --data-dir=/Users/zhaomeng/Zhihu/code/tidb_data/pd  > pd.log 2>&1 &
+nohup ./bin/pd-server --name=pd1 --client-urls=http://127.0.0.1:2379 --peer-urls=http://127.0.0.1:2380 --data-dir=/Users/zhaomeng/GolangProject/tb_data/pd >../logs/pd.log 2>&1 &
 ```
 
 2.2 启动 TIKV 项目
@@ -54,21 +57,22 @@ nohup ./pd-server --name=pd1 --client-urls=http://127.0.0.1:2379 --peer-urls=htt
 git clone git@github.com:MarilynZ/tikv.git
 
 编译
-cd tikv && make
+cd tikv
+make
 
 创建文件
-mkdir tidb_data/tikv
-mkdir tidb_data/tik2
-mkdir tidb_data/tik3
+mkdir -p tb_data/tikv1
+mkdir -p tb_data/tikv2
+mkdir -p tb_data/tikv3
 
 启动 3 个 tikv
-cd target/release/
-nohup ./tikv-server --addr 127.0.0.1:20160 --advertise-addr 127.0.0.1:20160 --pd 127.0.0.1:2379 --data-dir /Users/zhaomeng/Zhihu/code/tidb_data/tikv > tikv.log 2>&1 &
-nohup ./tikv-server --addr 127.0.0.1:20161 --advertise-addr 127.0.0.1:20161 --pd 127.0.0.1:2379 --data-dir /Users/zhaomeng/Zhihu/code/tidb_data/tikv2 > tikv2.log 2>&1 &
-nohup ./tikv-server --addr 127.0.0.1:20162 --advertise-addr 127.0.0.1:20162 --pd 127.0.0.1:2379 --data-dir /Users/zhaomeng/Zhihu/code/tidb_data/tikv3 > tikv3.log 2>&1 &
+nohup ./target/release/tikv-server --addr 127.0.0.1:20160 --advertise-addr 127.0.0.1:20160 --pd 127.0.0.1:2379 --data-dir /Users/zhaomeng/GolangProject/tb_data/tikv1 >../logs/tikv1.log 2>&1 &
+nohup ./target/release/tikv-server --addr 127.0.0.1:20161 --advertise-addr 127.0.0.1:20161 --pd 127.0.0.1:2379 --data-dir /Users/zhaomeng/GolangProject/tb_data/tikv2 >../logs/tikv2.log 2>&1 &
+nohup ./target/release/tikv-server --addr 127.0.0.1:20162 --advertise-addr 127.0.0.1:20162 --pd 127.0.0.1:2379 --data-dir /Users/zhaomeng/GolangProject/tb_data/tikv3 >../logs/tikv3.log 2>&1 &
 
 ```
 可能出现的报错和解决方案：
+
 "the maximum number of open file descriptors is too small, got 256, expect greater or equal to 82920"
 
 `sudo launchctl limit maxfiles 1000000 1000000`
@@ -79,14 +83,12 @@ nohup ./tikv-server --addr 127.0.0.1:20162 --advertise-addr 127.0.0.1:20162 --pd
 git clone git@github.com:MarilynZ/tidb.git
 
 编译
-cd tidb && make
-
-创建日志文件
-mkdir tidb_data/tidb
-touch tidb_data/tidb/tidb.log
+cd tidb
+go mod tidy
+make
 
 启动
-nohup ./tidb-server --store=tikv --path="127.0.0.1:2379" --log-file=/Users/zhaomeng/Zhihu/code/tidb_data/tidb/tidb.log &
+nohup ./bin/tidb-server --store=tikv --path="127.0.0.1:2379" --log-file=/Users/zhaomeng/GolangProject/logs/tidb.log &
 
 ```
 
@@ -95,7 +97,7 @@ nohup ./tidb-server --store=tikv --path="127.0.0.1:2379" --log-file=/Users/zhaom
 3.1 登录数据库（默认端口 4000，用户名 密码 root/Dest ）
  mysql -h127.0.0.1 -P4000 -uroot -Dtest
 
-![tidb数据库](/images/tidb.png)
+![tidb数据库](../images/tidb.png)
 
 3.3 查看实时日志, 可看到 "hello transaction"
 tailf -f tidb_data/tidb/tidb.log
@@ -104,4 +106,12 @@ tailf -f tidb_data/tidb/tidb.log
 [2020/08/16 18:39:57.472 +08:00] [INFO] [session.go:2168] ["hello transaction"]
 [2020/08/16 18:39:57.472 +08:00] [INFO] [session.go:2168] ["hello transaction"]
 
-![log](/images/log.png)
+![log](../images/log.png)
+
+3.3 查看 集群状态
+
+浏览器访问以下地址，默认无密码
+
+http://127.0.0.1:2379/dashboard/#/cluster_info/instance
+
+![dashboard](../images/dashboard.png)
